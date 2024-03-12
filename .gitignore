@@ -1,0 +1,4 @@
+**/tmp/*
+**/logs/*
+# **/user-files/results/*
+**/*.log
