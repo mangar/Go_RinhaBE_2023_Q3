@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"context"
+	"errors"
 	"os"
 	"sync"
 	"time"
@@ -34,3 +35,34 @@ func TestRedisConnection() {
 	err := rdb.Set(context.Background(), "healthcheck." + os.Getenv("SERVER_NAME") , "ok." + time.Now().String() , 0).Err()
     ExitOnError(err, "[Redis] Failed to Test Redis")	
 }
+
+
+func SetPessoa(apelido string, id string, pessoaInput string) error {
+	rdb := GetRedisConnection()
+	ctx := context.Background()
+
+	_, err := rdb.Get(ctx, "pessoa|" + apelido).Result()
+	if err == redis.Nil {
+		rdb.Set(ctx, "pessoa|" + apelido, pessoaInput, 15*time.Minute)
+		rdb.Set(ctx, "pessoa|" + id, pessoaInput, 15*time.Minute)
+		return nil
+	} else {
+		return errors.New("pessoa ja cadastrada")
+	}
+
+}
+
+func GetPessoaById(id string) (string, error) {
+	rdb := GetRedisConnection()
+	ctx := context.Background()
+
+	jsonData, err := rdb.Get(ctx, "pessoa|" + id).Result()
+	if err == redis.Nil {
+		return "", errors.New("pessoa nao encontrada")
+	} else {
+		return jsonData, nil
+	}
+
+}
+
+

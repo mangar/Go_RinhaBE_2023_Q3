@@ -1,18 +1,18 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"rinha23/helpers"
 
-	"github.com/sirupsen/logrus"
+	"github.com/google/uuid"
 )
 
 
 type PessoasPostInput struct {
+	Id			string `json:"id"`
 	Apelido 	string `json:"apelido"`
 	Nome 		interface{} `json:"nome"`
 	Nascimento 	string `json:"nascimento"`
@@ -33,7 +33,7 @@ func NewPessoasPost(w http.ResponseWriter, r *http.Request) PessoasPost {
 func (r *PessoasPost) Run() {
 
 	input, err := r.validateContent()
-	if err := LogOnError(err, "[handler.PessoasPost.ValidateContent]"); err != nil {
+	if err := helpers.LogOnError(err, "[handler.PessoasPost.ValidateContent]"); err != nil {
 		http.Error(r.w, err.Error(), http.StatusUnprocessableEntity)
 		return 
 	}
@@ -41,17 +41,19 @@ func (r *PessoasPost) Run() {
 	r.input = input
 
 	err = r.validateSintax()
-	if err := LogOnError(err, "[handler.PessoasPost.ValidateSintax]"); err != nil {
+	if err := helpers.LogOnError(err, "[handler.PessoasPost.ValidateSintax]"); err != nil {
 		http.Error(r.w, err.Error(), http.StatusBadRequest)
 		return 
 	}
 
-	rdb := helpers.GetRedisConnection()
-	rdb.Set(context.Background(), "aa", "aa")
-	// rdb.Del(context.Background(), "cliente_extrato_" + strconv.Itoa(idCliente))
-	// rdb.Del(context.Background(), "cliente_saldo_" + strconv.Itoa(idCliente))
-	
 	jsonData, _ := json.Marshal(r.input)
+
+	if err = helpers.SetPessoa(input.Apelido, input.Id, string(jsonData)); err != nil {
+		http.Error(r.w, err.Error(), http.StatusUnprocessableEntity)
+		return 		
+	}
+
+	
 	fmt.Fprintf(r.w, string(jsonData))
 }
 
@@ -60,7 +62,7 @@ func (r *PessoasPost) validateContent() (*PessoasPostInput, error) {
 
 	var input PessoasPostInput
 	err := json.NewDecoder(r.r.Body).Decode(&input)
-	if err = LogOnError(err, "[handler.PessoaPost.validate]"); err != nil {
+	if err = helpers.LogOnError(err, "[handler.PessoaPost.validate]"); err != nil {
 		return nil, err
 	} 
 	
@@ -73,6 +75,8 @@ func (r *PessoasPost) validateContent() (*PessoasPostInput, error) {
 	if input.Nome == "" {
 		return nil, errors.New("campo nome null")
 	}
+
+	input.Id = uuid.New().String()
 
 	return &input, nil
 }
@@ -96,17 +100,3 @@ func (r *PessoasPost) validateSintax() error {
 
 	return nil
 }
-
-
-
-
-
-func LogOnError(err error, msg string) error {
-	if err != nil {
-		logrus.Error(msg + " .. " + err.Error())
-		return errors.New(msg + " .. " + err.Error())
-	} else {
-		return nil
-	}
-}
-

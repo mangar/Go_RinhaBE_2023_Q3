@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"rinha23/controllers"
 	"rinha23/helpers"
 
 	"github.com/joho/godotenv"
@@ -22,10 +23,9 @@ func main() {
 	helpers.TestRedisConnection()
 
 	logrus.Debug("Starting server at port ", os.Getenv("WEB_PORT"))
-    if err := http.ListenAndServe(":" + os.Getenv("WEB_PORT") , helpers.SetupRoutes()); err != nil {
+    if err := http.ListenAndServe(":" + os.Getenv("WEB_PORT"), controllers.SetupRoutes()); err != nil {
         log.Fatal(err)
     }
-
 }
 
 

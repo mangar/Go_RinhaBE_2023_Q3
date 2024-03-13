@@ -1,10 +1,9 @@
-package helpers
+package controllers
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"rinha23/controllers"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -23,7 +22,7 @@ func SetupRoutes() *mux.Router {
 
 	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			a := controllers.NewPessoasPost(w,r)
+			a := NewPessoasPost(w,r)
 			a.Run()
 
 		} else if r.Method == http.MethodGet {
@@ -34,7 +33,8 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/pessoas/{ID}", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			vars := mux.Vars(r)
-			fmt.Fprintf(w, "GET /pessoas/"+vars["ID"])
+			c := NewPessoaDetalhe(w,r,vars["ID"])
+			c.Run()			
 		}
 	})
 
