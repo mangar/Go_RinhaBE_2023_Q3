@@ -26,7 +26,8 @@ func SetupRoutes() *mux.Router {
 			a.Run()
 
 		} else if r.Method == http.MethodGet {
-			fmt.Fprintf(w, "GET /pessoas?")
+			a := NewPessoaBuscar(w,r)
+			a.Run()
 		}
 	})
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"rinha23/helpers"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -17,6 +18,22 @@ type PessoasPostInput struct {
 	Nome 		interface{} `json:"nome"`
 	Nascimento 	string `json:"nascimento"`
 	Stack		[]interface{} `json:"stack"`
+	SearchContent		string `json:"searchContent"`
+}
+
+func (i *PessoasPostInput) generateSearhContent() string {
+	
+	var stacks strings.Builder
+
+	for _, stack := range i.Stack {
+		ss, _ := stack.(string)
+		stacks.WriteString(ss + "|")
+	}
+
+	nome, _ := i.Nome.(string)
+
+	i.SearchContent = fmt.Sprintf("%v|%v|%v", strings.ToLower(i.Apelido), strings.ToLower(nome), strings.ToLower(stacks.String()))
+	return i.SearchContent
 }
 
 type PessoasPost struct {
@@ -46,13 +63,16 @@ func (r *PessoasPost) Run() {
 		return 
 	}
 
+	r.input.generateSearhContent()
 	jsonData, _ := json.Marshal(r.input)
 
-	if err = helpers.SetPessoa(input.Apelido, input.Id, string(jsonData)); err != nil {
+	if err = helpers.SetPessoa(input.Apelido, input.Id, input.SearchContent, string(jsonData)); err != nil {
 		http.Error(r.w, err.Error(), http.StatusUnprocessableEntity)
 		return 		
 	}
-
+	// 
+	// DB. Salvar no banco de dados.....
+	
 	
 	fmt.Fprintf(r.w, string(jsonData))
 }
