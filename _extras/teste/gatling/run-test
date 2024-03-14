@@ -1,0 +1,64 @@
+#! /usr/bin/env sh
+
+# Exemplos de requests
+# curl -v -XPOST -H "content-type: application/json" -d '{"apelido" : "xpto", "nome" : "xpto xpto", "nascimento" : "2000-01-01", "stack": null}' "http://localhost:9999/pessoas"
+# curl -v -XGET "http://localhost:9999/pessoas/1"
+# curl -v -XGET "http://localhost:9999/pessoas?t=xpto"
+# curl -v "http://localhost:9999/contagem-pessoas"
+
+WORKSPACE=$(pwd)
+GATLING_BIN_DIR=/mnt/c/Users/mggop/OneDrive/Documents/My/temp/gatling/3.10.3/bin
+# GATLING_BIN_DIR="${WORKSPACE}/deps/gatling/bin"
+
+sh ${GATLING_BIN_DIR}/gatling.sh \
+  -rm local \
+  -s RinhaBackendSimulation \
+  -rd "DESCRICAO" \
+  -rf ${WORKSPACE}/user-files/results \
+  -sf ${WORKSPACE}/user-files/simulations \
+  -rsf ${WORKSPACE}/user-files/resources
+
+# RESULTS_WORKSPACE="$(pwd)/user-files/results"
+# GATLING_BIN_DIR=/mnt/c/Users/mggop/OneDrive/Documents/My/temp/gatling/3.10.3/bin
+# GATLING_WORKSPACE="$(pwd)/user-files"
+
+# sh $GATLING_BIN_DIR/gatling.sh \
+#   -rm local \
+#   -s RinhaBackendSimulation \
+#   -rd "Rinha de Backend - 2023/Q3" \
+#   -rf $RESULTS_WORKSPACE \
+#   -sf "$GATLING_WORKSPACE/simulations" \
+#   -rsf $GATLING_WORKSPACE/user-files/resources  
+
+sleep 3
+
+COUNT=$(curl -fsSL "http://localhost:9999/contagem-pessoas")
+echo "${COUNT}"
+
+
+
+
+
+
+# runGatling() {
+#     sh $GATLING_BIN_DIR/gatling.sh \
+#       -rm local \
+#       -s RinhaBackendSimulation \
+#       -rd "Rinha de Backend - 2023/Q3" \
+#       -rf $RESULTS_WORKSPACE \
+#       -sf "$GATLING_WORKSPACE/simulations"
+# }
+
+# startTest() {
+#     for i in {1..20}; do
+#         # 2 requests to wake the 2 api instances up :)
+#         curl --fail http://localhost:3000/clientes/1/extrato && \
+#         echo "" && \
+#         curl --fail http://localhost:3000/clientes/1/extrato && \
+#         echo "" && \
+#         runGatling && \
+#         break || sleep 2;
+#     done
+# }
+
+# startTest

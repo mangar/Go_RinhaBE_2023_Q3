@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,6 +36,16 @@ func (i *PessoasPostInput) generateSearhContent() string {
 	i.SearchContent = fmt.Sprintf("%v|%v|%v", strings.ToLower(i.Apelido), strings.ToLower(nome), strings.ToLower(stacks.String()))
 	return i.SearchContent
 }
+
+func (i *PessoasPostInput) GetStack() string {	
+	var stacks strings.Builder
+	for _, stack := range i.Stack {
+		ss, _ := stack.(string)
+		stacks.WriteString(ss + ",")
+	}
+	return stacks.String()
+}
+
 
 type PessoasPost struct {
 	w http.ResponseWriter
@@ -72,9 +83,26 @@ func (r *PessoasPost) Run() {
 	}
 	// 
 	// DB. Salvar no banco de dados.....
+	r.insertPessoa()
 	
-	
+	r.w.Header().Set("Location", "/pessoas/" + r.input.Id)
+	r.w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(r.w, string(jsonData))
+}
+
+
+func (r *PessoasPost) insertPessoa() error {
+	ctx := context.Background()
+
+	_, err := helpers.GetDBConnection().Exec(ctx, `
+	INSERT INTO rinha23_clientes (id, apelido, nome, nascimento, stack, search_content) VALUES ($1, $2, $3, $4, $5, $6);`, 
+	r.input.Id, r.input.Apelido, r.input.Nome, r.input.Nascimento, r.input.GetStack(), r.input.SearchContent)
+
+	if err = helpers.LogOnError(err, "[NewPessoasPost.Run.insertPessoa]"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 

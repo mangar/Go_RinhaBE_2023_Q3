@@ -41,7 +41,8 @@ func SetupRoutes() *mux.Router {
 
 	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			fmt.Fprintf(w, "GET /contagem-pessoas/")
+			c := NewContagemPessoas(w,r)
+			c.Run()			
 		}
 	})
 

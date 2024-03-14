@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -21,11 +22,22 @@ var (
 
 func GetRedisConnection() (*redis.Client) {
 	onceRedis.Do(func() {
-		opts, err := redis.ParseURL(os.Getenv("REDIS_CONNECTION"))
-		ExitOnError(err, "[Redis] Failed to connect to Redis")	
-		logrus.Info("[Redis] Connection OK")
 		
-		rdbInstance = redis.NewClient(opts)
+		poolSize, _ := strconv.Atoi(os.Getenv("REDIS_POOL_SIZE"))
+		minIdleConns, _ := strconv.Atoi(os.Getenv("REDIS_MIN_IDLE_CONNS"))
+
+		rdbInstance = redis.NewClient(&redis.Options{
+				Addr:         os.Getenv("REDIS_CONNECTION"),
+				Password:     os.Getenv("REDIS_PASSWORD"),
+				DB:           0, 
+				PoolSize:     poolSize,
+				MinIdleConns: minIdleConns,
+				PoolTimeout:  60000,
+				// IdleTimeout:  60,
+			})
+
+		
+		logrus.Info("[Redis] Connection OK")
 
 	})
 	return rdbInstance

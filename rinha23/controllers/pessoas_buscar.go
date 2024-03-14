@@ -40,6 +40,10 @@ func (r *PessoaBuscar) Run() {
 			r.output = append(r.output, pessoaData)
 		}
 		
+	} else {
+
+		http.Error(r.w, err.Error(), http.StatusBadRequest)
+		return 
 	}
 
 	jsonData, _ := json.Marshal(r.output)
