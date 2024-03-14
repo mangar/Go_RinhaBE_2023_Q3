@@ -46,6 +46,7 @@ func SetupRoutes() *mux.Router {
 		}
 	})
 
+	logrus.Debug("[Routes] DONE Seting up routes.")
 	return router
 }
 

@@ -22,8 +22,10 @@ func main() {
 	// Redis
 	helpers.TestRedisConnection()
 
+	routes := controllers.SetupRoutes()
+
 	logrus.Debug("Starting server at port ", os.Getenv("WEB_PORT"))
-    if err := http.ListenAndServe(":" + os.Getenv("WEB_PORT"), controllers.SetupRoutes()); err != nil {
+    if err := http.ListenAndServe(":" + os.Getenv("WEB_PORT"), routes); err != nil {
         log.Fatal(err)
     }
 }
