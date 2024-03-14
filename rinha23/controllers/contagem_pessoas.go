@@ -2,10 +2,15 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"rinha23/helpers"
 )
+
+
+type ContagemPessoasResult struct {
+	Count		int
+	StatusCode	int
+}
 
 type ContagemPessoas struct {
 	w 			http.ResponseWriter
@@ -17,7 +22,7 @@ func NewContagemPessoas(w http.ResponseWriter, r *http.Request) ContagemPessoas 
 	return ContagemPessoas{w:w, r:r}
 }
 
-func (r *ContagemPessoas) Run() {
+func (r *ContagemPessoas) Run() ContagemPessoasResult {
 
 	count := 0
 	ctx := context.Background()
@@ -32,5 +37,5 @@ func (r *ContagemPessoas) Run() {
 		helpers.LogOnError(err, "[NewContagemPessoas.Next]")
 	}
 
-	fmt.Fprintf(r.w, fmt.Sprintf("%v", count))
+	return ContagemPessoasResult{StatusCode: 200, Count:count}
 }

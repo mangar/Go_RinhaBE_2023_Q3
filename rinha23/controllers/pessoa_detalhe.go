@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"rinha23/helpers"
 )
 
+type PessoaDetalheResult struct {
+	StatusCode	int
+	Content		string
+}
 
 type PessoaDetalhe struct {
 	w 			http.ResponseWriter
@@ -18,14 +21,11 @@ func NewPessoaDetalhe(w http.ResponseWriter, r *http.Request, id string) PessoaD
 	return PessoaDetalhe{w:w, r:r, IdPessoa: id}
 }
 
-func (r *PessoaDetalhe) Run() {
-
+func (r *PessoaDetalhe) Run() PessoaDetalheResult {
 	jsonDataPessoa, err := helpers.GetPessoaById(r.IdPessoa)
 	if err := helpers.LogOnError(err, "[handler.PessoaDetalhe.GetPessoaById]"); err != nil {
-		http.Error(r.w, err.Error(), http.StatusNotFound)
-		return 
+		return PessoaDetalheResult{StatusCode: http.StatusNotFound, Content:err.Error()}
 	}
-
-	fmt.Fprintf(r.w, jsonDataPessoa)
+	return PessoaDetalheResult{StatusCode: 200, Content:jsonDataPessoa}
 }
 

@@ -1,94 +1,111 @@
 package controllers
 
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+// // worker é a função que cada worker vai executar.
+// // Recebe tarefas de um channel, processa-as e notifica a finalização no WaitGroup.
+// func Worker(id int, tasks <-chan Task, wg *sync.WaitGroup) {
+// 	defer wg.Done() // Notifica a conclusão deste worker ao WaitGroup.
+// 	for task := range tasks {
+// 		logrus.Debug("> > > > > > Worker %d iniciou tarefa %v\n", id, task)
 
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-)
+// 		logrus.Debug(">> CONTROLLER: ", task.Controller)
+// 		fmt.Fprintf(task.w, "[" + task.Controller + "]Hello 👋!")
 
-func SetupRoutes() *mux.Router {
-	logrus.Debug("[Routes] Seting up routes.")
+// 		logrus.Debug("< < < < < < Worker %d completou tarefa %v\n", id, task)
+// 	}
+// }
 
-	router := mux.NewRouter()
+// type Task struct {
+// 	ID			int
+// 	Controller 	string
+// 	w 			http.ResponseWriter
+// 	r 			*http.Request
+// }
 
-	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		if !isTestRequest(w, r) {
-			fmt.Fprintf(w, "Hello 👋!")
-		}
-	})
+// func SetupRoutes(taskChannel chan Task) *mux.Router {
+// 	logrus.Debug("[Routes] Seting up routes.")
 
-	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			a := NewPessoasPost(w,r)
-			a.Run()
+// 	router := mux.NewRouter()
 
-		} else if r.Method == http.MethodGet {
-			a := NewPessoaBuscar(w,r)
-			a.Run()
-		}
-	})
+// 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+// 		if !isTestRequest(w, r) {
 
-	router.HandleFunc("/pessoas/{ID}", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			vars := mux.Vars(r)
-			c := NewPessoaDetalhe(w,r,vars["ID"])
-			c.Run()			
-		}
-	})
+// 			task := Task{
+// 				ID:      time.Now().Nanosecond(),
+// 				Controller: "extrato",
+// 				w:w,
+// 				r:r,
+// 			}
+// 			taskChannel <- task
 
-	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			c := NewContagemPessoas(w,r)
-			c.Run()			
-		}
-	})
+// 		}
+// 	})
 
-	return router
-}
+// 	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
+// 		if r.Method == http.MethodPost {
+// 			a := NewPessoasPost(w,r)
+// 			a.Run()
 
+// 		} else if r.Method == http.MethodGet {
+// 			a := NewPessoaBuscar(w,r)
+// 			a.Run()
+// 		}
+// 	})
 
+// 	router.HandleFunc("/pessoas/{ID}", func(w http.ResponseWriter, r *http.Request) {
+// 		if r.Method == http.MethodGet {
+// 			vars := mux.Vars(r)
+// 			c := NewPessoaDetalhe(w,r,vars["ID"])
+// 			c.Run()
+// 		}
+// 	})
 
-func isTestRequest(w http.ResponseWriter, r *http.Request) bool {
-	isTest := false
-	content := make(map[string]string)
+// 	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
+// 		if r.Method == http.MethodGet {
+// 			c := NewContagemPessoas(w,r)
+// 			c.Run()
+// 		}
+// 	})
 
-	testValue := r.Header.Get("X-Test")
-	if testValue == "true" {
+// 	return router
+// }
 
-		w.Header().Set("Content-Type", "application/json")
-		
-		// Headers
-		for name, values := range r.Header {
-			for _, value := range values {
-				content["HEADER:" + name] = value
-			}
-		}
+// func isTestRequest(w http.ResponseWriter, r *http.Request) bool {
+// 	isTest := false
+// 	content := make(map[string]string)
 
-		// PATH PARAMS
-		for k, v := range mux.Vars(r) {
-			content["PATH:" + k] = v
-		}
+// 	testValue := r.Header.Get("X-Test")
+// 	if testValue == "true" {
 
-		// QUERY
-		for k, v := range r.URL.Query() {
-			content["PATH:" + k] = v[0]
-		}
+// 		w.Header().Set("Content-Type", "application/json")
 
+// 		// Headers
+// 		for name, values := range r.Header {
+// 			for _, value := range values {
+// 				content["HEADER:" + name] = value
+// 			}
+// 		}
 
-		content["URL:Path"] = r.URL.Path
-		content["URL:RawQuery"] = r.URL.RawQuery
-		content["URL:FullPath"] = r.URL.Path + r.URL.RawQuery
+// 		// PATH PARAMS
+// 		for k, v := range mux.Vars(r) {
+// 			content["PATH:" + k] = v
+// 		}
 
-		jsonData, _ := json.Marshal(content)
+// 		// QUERY
+// 		for k, v := range r.URL.Query() {
+// 			content["PATH:" + k] = v[0]
+// 		}
 
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, string(jsonData))
-		isTest = true
-	}
-	return isTest
-}
+// 		content["URL:Path"] = r.URL.Path
+// 		content["URL:RawQuery"] = r.URL.RawQuery
+// 		content["URL:FullPath"] = r.URL.Path + r.URL.RawQuery
+
+// 		jsonData, _ := json.Marshal(content)
+
+// 		w.WriteHeader(http.StatusOK)
+// 		fmt.Fprintf(w, string(jsonData))
+// 		isTest = true
+// 	}
+// 	return isTest
+// }
 
 
