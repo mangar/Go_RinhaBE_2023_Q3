@@ -1,111 +1,95 @@
 package controllers
 
-// // worker é a função que cada worker vai executar.
-// // Recebe tarefas de um channel, processa-as e notifica a finalização no WaitGroup.
-// func Worker(id int, tasks <-chan Task, wg *sync.WaitGroup) {
-// 	defer wg.Done() // Notifica a conclusão deste worker ao WaitGroup.
-// 	for task := range tasks {
-// 		logrus.Debug("> > > > > > Worker %d iniciou tarefa %v\n", id, task)
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 
-// 		logrus.Debug(">> CONTROLLER: ", task.Controller)
-// 		fmt.Fprintf(task.w, "[" + task.Controller + "]Hello 👋!")
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+)
 
-// 		logrus.Debug("< < < < < < Worker %d completou tarefa %v\n", id, task)
-// 	}
-// }
+func SetupRoutes() *mux.Router {
+	logrus.Debug("[Routes] Seting up routes.")
 
-// type Task struct {
-// 	ID			int
-// 	Controller 	string
-// 	w 			http.ResponseWriter
-// 	r 			*http.Request
-// }
+	router := mux.NewRouter()
 
-// func SetupRoutes(taskChannel chan Task) *mux.Router {
-// 	logrus.Debug("[Routes] Seting up routes.")
+	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		if !isTestRequest(w, r) {
+			fmt.Fprintf(w, "Hello 👋!")
+		}
+	})
 
-// 	router := mux.NewRouter()
+	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			a := NewPessoasPost(w,r)
+			a.Run()
 
-// 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-// 		if !isTestRequest(w, r) {
+		} else if r.Method == http.MethodGet {
+			a := NewPessoaBuscar(w,r)
+			a.Run()
+		}
+	})
 
-// 			task := Task{
-// 				ID:      time.Now().Nanosecond(),
-// 				Controller: "extrato",
-// 				w:w,
-// 				r:r,
-// 			}
-// 			taskChannel <- task
+	router.HandleFunc("/pessoas/{ID}", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			vars := mux.Vars(r)
+			c := NewPessoaDetalhe(w,r,vars["ID"])
+			c.Run()			
+		}
+	})
 
-// 		}
-// 	})
+	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			c := NewContagemPessoas(w,r)
+			c.Run()			
+		}
+	})
 
-// 	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method == http.MethodPost {
-// 			a := NewPessoasPost(w,r)
-// 			a.Run()
+	logrus.Debug("[Routes] DONE Seting up routes.")
+	return router
+}
 
-// 		} else if r.Method == http.MethodGet {
-// 			a := NewPessoaBuscar(w,r)
-// 			a.Run()
-// 		}
-// 	})
 
-// 	router.HandleFunc("/pessoas/{ID}", func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method == http.MethodGet {
-// 			vars := mux.Vars(r)
-// 			c := NewPessoaDetalhe(w,r,vars["ID"])
-// 			c.Run()
-// 		}
-// 	})
 
-// 	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Method == http.MethodGet {
-// 			c := NewContagemPessoas(w,r)
-// 			c.Run()
-// 		}
-// 	})
+func isTestRequest(w http.ResponseWriter, r *http.Request) bool {
+	isTest := false
+	content := make(map[string]string)
 
-// 	return router
-// }
+	testValue := r.Header.Get("X-Test")
+	if testValue == "true" {
 
-// func isTestRequest(w http.ResponseWriter, r *http.Request) bool {
-// 	isTest := false
-// 	content := make(map[string]string)
+		w.Header().Set("Content-Type", "application/json")
+		
+		// Headers
+		for name, values := range r.Header {
+			for _, value := range values {
+				content["HEADER:" + name] = value
+			}
+		}
 
-// 	testValue := r.Header.Get("X-Test")
-// 	if testValue == "true" {
+		// PATH PARAMS
+		for k, v := range mux.Vars(r) {
+			content["PATH:" + k] = v
+		}
 
-// 		w.Header().Set("Content-Type", "application/json")
+		// QUERY
+		for k, v := range r.URL.Query() {
+			content["PATH:" + k] = v[0]
+		}
 
-// 		// Headers
-// 		for name, values := range r.Header {
-// 			for _, value := range values {
-// 				content["HEADER:" + name] = value
-// 			}
-// 		}
 
-// 		// PATH PARAMS
-// 		for k, v := range mux.Vars(r) {
-// 			content["PATH:" + k] = v
-// 		}
+		content["URL:Path"] = r.URL.Path
+		content["URL:RawQuery"] = r.URL.RawQuery
+		content["URL:FullPath"] = r.URL.Path + r.URL.RawQuery
 
-// 		// QUERY
-// 		for k, v := range r.URL.Query() {
-// 			content["PATH:" + k] = v[0]
-// 		}
+		jsonData, _ := json.Marshal(content)
 
-// 		content["URL:Path"] = r.URL.Path
-// 		content["URL:RawQuery"] = r.URL.RawQuery
-// 		content["URL:FullPath"] = r.URL.Path + r.URL.RawQuery
-
-// 		jsonData, _ := json.Marshal(content)
-
-// 		w.WriteHeader(http.StatusOK)
-// 		fmt.Fprintf(w, string(jsonData))
-// 		isTest = true
-// 	}
-// 	return isTest
-// }
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, string(jsonData))
+		isTest = true
+	}
+	return isTest
+}
 
 
