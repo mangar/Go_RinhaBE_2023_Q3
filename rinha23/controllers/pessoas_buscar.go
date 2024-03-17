@@ -3,14 +3,15 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"rinha23/helpers"
 )
 
-type PessoaBuscarResult struct {
-	StatusCode	int
-	Content		string
-}
+// type PessoaBuscarResult struct {
+// 	StatusCode	int
+// 	Content		string
+// }
 
 type PessoaData struct {
 	Id			string `json:"id"`
@@ -32,7 +33,7 @@ func NewPessoaBuscar(w http.ResponseWriter, r *http.Request) PessoaBuscar {
 	return PessoaBuscar{w:w, r:r, output: make([]PessoaData, 0)}
 }
 
-func (r *PessoaBuscar) Run() PessoaBuscarResult {
+func (r *PessoaBuscar) Run() {
 
 	if _, err := r.validateQueryParams(); err == nil {
 		pessoasRedis, err := helpers.GetPessoaByTermo(r.t)
@@ -45,14 +46,14 @@ func (r *PessoaBuscar) Run() PessoaBuscarResult {
 		}
 		
 	} else {
-
-		// http.Error(r.w, err.Error(), http.StatusBadRequest)
-		return PessoaBuscarResult{StatusCode: http.StatusBadRequest, Content: err.Error()}
+		r.w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(r.w, err.Error())
+		return 
 	}
 
 	jsonData, _ := json.Marshal(r.output)
-	// fmt.Fprintf(r.w, string(jsonData))
-	return PessoaBuscarResult{StatusCode: 200, Content: string(jsonData)}
+	fmt.Fprintf(r.w, string(jsonData))
+	// return Result{w:r.w, StatusCode: http.StatusOK, Content: string(jsonData)}
 }
 
 

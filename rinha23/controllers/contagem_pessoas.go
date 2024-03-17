@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 	"rinha23/helpers"
+	"strconv"
 )
 
-
-type ContagemPessoasResult struct {
-	Count		int
-	StatusCode	int
-}
+// type ContagemPessoasResult struct {
+// 	Content		string
+// 	StatusCode	int
+// }
 
 type ContagemPessoas struct {
 	w 			http.ResponseWriter
@@ -22,7 +22,7 @@ func NewContagemPessoas(w http.ResponseWriter, r *http.Request) ContagemPessoas 
 	return ContagemPessoas{w:w, r:r}
 }
 
-func (r *ContagemPessoas) Run() ContagemPessoasResult {
+func (r *ContagemPessoas) Run() Result {
 
 	count := 0
 	ctx := context.Background()
@@ -37,5 +37,5 @@ func (r *ContagemPessoas) Run() ContagemPessoasResult {
 		helpers.LogOnError(err, "[NewContagemPessoas.Next]")
 	}
 
-	return ContagemPessoasResult{StatusCode: 200, Count:count}
+	return Result{w:r.w, StatusCode: 200, Content: strconv.Itoa(count)}
 }

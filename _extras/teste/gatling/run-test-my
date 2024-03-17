@@ -1,0 +1,48 @@
+#! /usr/bin/env sh
+
+# Exemplos de requests
+# curl -v -XPOST -H "content-type: application/json" -d '{"apelido" : "xpto", "nome" : "xpto xpto", "nascimento" : "2000-01-01", "stack": null}' "http://localhost:9999/pessoas"
+# curl -v -XGET "http://localhost:9999/pessoas/1"
+# curl -v -XGET "http://localhost:9999/pessoas?t=xpto"
+# curl -v "http://localhost:9999/contagem-pessoas"
+
+WORKSPACE=$(pwd)
+GATLING_BIN_DIR=/mnt/c/Users/mggop/OneDrive/Documents/My/temp/gatling/3.10.3/bin
+
+runGatling() {
+
+  sh ${GATLING_BIN_DIR}/gatling.sh \
+    -rm local \
+    -s RinhaBackendSimulationMy \
+    -rd "DESCRICAO" \
+    -rf ${WORKSPACE}/user-files/results \
+    -sf ${WORKSPACE}/user-files/simulations \
+    -rsf ${WORKSPACE}/user-files/resources
+
+}
+
+
+startTest() {
+  runGatling
+}
+
+
+startTest
+
+
+
+# {
+#   "apelido" : S5S1mISLU3, 
+#   "nome" : (João,Oliveira), 
+#   "nascimento" : 1973-09-17, 
+#   "stack" : ["SQLServer", "CouchDB"]
+# }
+
+# {
+#   "apelido" : "jKgPUsRw0B", 
+#   "nome" : "Marcos Pereira", 
+#   "nascimento" : "1967-06-12", 
+#   "stack" : [
+#     "JavaScript", "C#", "Python", "Scala", "Oracle", "SQLServer", "MySQL", "TypeScript", "AWS"
+#     ]
+# }

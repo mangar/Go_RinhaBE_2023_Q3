@@ -12,12 +12,11 @@ import (
 	"github.com/google/uuid"
 )
 
-
-type PessoaSalvarResult struct {
-	StatusCode	int
-	Content		string
-	Headers map[string]string
-}
+// type PessoaSalvarResult struct {
+// 	StatusCode	int
+// 	Content		string
+// 	Headers map[string]string
+// }
 
 type PessoasPostInput struct {
 	Id			string `json:"id"`
@@ -63,12 +62,12 @@ func NewPessoasPost(w http.ResponseWriter, r *http.Request) PessoasPost {
 	return PessoasPost{w:w, r:r}
 }
 
-func (r *PessoasPost) Run() PessoaSalvarResult {
+func (r *PessoasPost) Run() Result {
 
 	input, err := r.validateContent()
 	if err := helpers.LogOnError(err, "[handler.PessoasPost.ValidateContent]"); err != nil {
 		// http.Error(r.w, err.Error(), http.StatusUnprocessableEntity)
-		return PessoaSalvarResult{StatusCode: http.StatusUnprocessableEntity}
+		return Result{w:r.w, StatusCode: http.StatusUnprocessableEntity}
 	}
 
 	r.input = input
@@ -76,7 +75,7 @@ func (r *PessoasPost) Run() PessoaSalvarResult {
 	err = r.validateSintax()
 	if err := helpers.LogOnError(err, "[handler.PessoasPost.ValidateSintax]"); err != nil {
 		http.Error(r.w, err.Error(), http.StatusBadRequest)
-		return PessoaSalvarResult{StatusCode: http.StatusBadRequest}
+		return Result{w:r.w, StatusCode: http.StatusBadRequest}
 	}
 
 	r.input.generateSearhContent()
@@ -84,17 +83,14 @@ func (r *PessoasPost) Run() PessoaSalvarResult {
 
 	if err = helpers.SetPessoa(input.Apelido, input.Id, input.SearchContent, string(jsonData)); err != nil {
 		http.Error(r.w, err.Error(), http.StatusUnprocessableEntity)
-		return PessoaSalvarResult{StatusCode: http.StatusUnprocessableEntity}
+		return Result{w:r.w, StatusCode: http.StatusUnprocessableEntity}
 	}
 	// 
 	// DB. Salvar no banco de dados.....
 	r.insertPessoa()
 	
-	// r.w.Header().Set("Location", "/pessoas/" + r.input.Id)
-	// r.w.WriteHeader(http.StatusCreated)
-	// fmt.Fprintf(r.w, string(jsonData))
-
-	return PessoaSalvarResult{
+	r.w.Header().Set("Location", "/pessoas/" + r.input.Id)
+	return Result{ w:r.w,
 		StatusCode: http.StatusCreated,
 		Content: string(jsonData),
 		Headers: map[string]string{ "Location":"/pessoas/" + r.input.Id },

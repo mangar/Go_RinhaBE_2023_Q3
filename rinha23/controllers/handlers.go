@@ -23,11 +23,14 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/pessoas", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			a := NewPessoasPost(w,r)
-			a.Run()
+			result := a.Run()
+			writeOut(result, w)
 
 		} else if r.Method == http.MethodGet {
 			a := NewPessoaBuscar(w,r)
 			a.Run()
+			// result := a.Run()
+			// writeOut(result, w)
 		}
 	})
 
@@ -35,14 +38,17 @@ func SetupRoutes() *mux.Router {
 		if r.Method == http.MethodGet {
 			vars := mux.Vars(r)
 			c := NewPessoaDetalhe(w,r,vars["ID"])
-			c.Run()			
+			c.Run()
+			// result := c.Run()
+			// writeOut(result, w)
 		}
 	})
 
 	router.HandleFunc("/contagem-pessoas", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			c := NewContagemPessoas(w,r)
-			c.Run()			
+			result := c.Run()
+			writeOut(result, w)
 		}
 	})
 
@@ -50,6 +56,35 @@ func SetupRoutes() *mux.Router {
 	return router
 }
 
+
+type Result struct {
+	w 			http.ResponseWriter
+	StatusCode	int
+	Content		string
+	Headers map[string]string
+}
+
+func writeOut(result Result, w http.ResponseWriter) {
+
+	if result.StatusCode != http.StatusOK {
+		result.w.WriteHeader(result.StatusCode)
+	}
+
+	// logrus.Debug("HEADER:", result.Headers)
+
+	// for key, value := range result.Headers {
+	// 	logrus.Debug(" - ", key, ":", value)
+	// 	result.w.Header().Set(key, value)
+
+	// 	result.w.Header().Set("w1", "w1")
+
+	// 	w.Header().Set(key, value)
+
+	// 	w.Header().Set("w2", "w2")
+	// }
+
+	fmt.Fprintf(result.w, result.Content)
+}
 
 
 func isTestRequest(w http.ResponseWriter, r *http.Request) bool {

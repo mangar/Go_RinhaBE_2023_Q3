@@ -17,3 +17,6 @@ ALTER TABLE rinha23_clientes SET (autovacuum_enabled = false);
 
 -- --
 -- select * from rinha23_clientes;
+
+
+delete from rinha23_clientes

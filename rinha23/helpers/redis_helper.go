@@ -93,6 +93,7 @@ func GetPessoaByTermo(t string) ([]string, error) {
 	// logrus.Debug(">> Termo:", pattern)
 
 	keys := make([]string, 0)
+	count := 1
 	for {
 		var batch []string
 		batch, cursor, err = rdb.Scan(ctx, cursor, pattern, 0).Result()
@@ -102,6 +103,10 @@ func GetPessoaByTermo(t string) ([]string, error) {
 		keys = append(keys, batch...)
 
 		if cursor == 0 {
+			break
+		}
+		count++
+		if count >= 10 {
 			break
 		}
 	}
